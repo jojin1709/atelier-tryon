@@ -660,9 +660,9 @@
   <script>
     var currentGarment = '/shirt1.png';
 
-    // Retrieve or default API key
-    var activeApiKey = localStorage.getItem('aurafit_decart_api_key') || 'dct_fdsfgsgfsdfgfs_eNOBoCaSPNddmNDFZMpBumzNIqccnKrwSfRDRhklHXBnNEXEbakUwaelDBugkSLI';
-    localStorage.setItem('aurafit_decart_api_key', activeApiKey);
+    // Load stored API key — never seed a fake placeholder
+    var activeApiKey = (localStorage.getItem('aurafit_decart_api_key') || '').trim();
+    var hasRealKey = activeApiKey.startsWith('dct_') && activeApiKey.length > 30;
 
     function selectGarment(cardEl, url) {
       document.querySelectorAll('.garment-card').forEach(c => c.classList.remove('active'));
@@ -753,13 +753,13 @@
       })
       .then(data => {
         activeApiKey = key;
+        hasRealKey = true;
         localStorage.setItem('aurafit_decart_api_key', key);
         status.style.color = '#10b981';
-        status.textContent = '✓ Verified! Decart Lucy VTON 3.5 Activated.';
+        status.textContent = '✓ Verified! Reloading mirror with AI try-on…';
         btn.disabled = false;
         btn.textContent = 'Saved!';
         updateKeyDisplay();
-        setTimeout(closeKeyModal, 1200);
 
         // Also update local server if running
         fetch('/api/decart/key', {
@@ -767,19 +767,35 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ api_key: key })
         }).catch(() => {});
+
+        // Reload the widget iframe so config.js picks up the new key
+        setTimeout(function() {
+          closeKeyModal();
+          reloadWidget();
+        }, 1400);
       })
       .catch(err => {
         status.style.color = '#ef4444';
-        status.textContent = 'Verification error: please check the key and your connection.';
+        status.textContent = 'Invalid key or connection error. Get a key at platform.decart.ai/api-keys';
         btn.disabled = false;
         btn.textContent = 'Retry';
       });
     }
 
     function updateKeyDisplay() {
-      var preview = activeApiKey ? (activeApiKey.slice(0, 7) + '...' + activeApiKey.slice(-4)) : 'None';
-      document.getElementById('diag-key-preview').textContent = preview + ' ✓';
-      document.getElementById('cloud-badge-text').textContent = 'DECART CLOUD: LUCY-VTON-3.5';
+      var kEl = document.getElementById('diag-key-preview');
+      var badgeEl = document.getElementById('cloud-badge-text');
+      if (hasRealKey) {
+        kEl.textContent = activeApiKey.slice(0, 7) + '...' + activeApiKey.slice(-4) + ' ✓';
+        kEl.style.color = '#10b981';
+        if (badgeEl) badgeEl.textContent = 'DECART CLOUD: LUCY-VTON-3.5';
+      } else {
+        kEl.textContent = '⚠ No key — click to add';
+        kEl.style.color = '#f59e0b';
+        kEl.style.cursor = 'pointer';
+        kEl.onclick = openKeyModal;
+        if (badgeEl) badgeEl.textContent = 'ADD API KEY FOR AI TRY-ON';
+      }
     }
 
     // Health Polling — try local server first, fall back to cloud /api/health

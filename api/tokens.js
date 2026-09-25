@@ -13,13 +13,14 @@ export default async function handler(req, res) {
       body = req.body;
     }
 
-    // Priority: request header > request body > env var
+    // Priority: ?k= query param (from config.js) > header > body > env
     const apiKey =
+      (req.query && req.query.k ? decodeURIComponent(req.query.k) : "").trim() ||
       (req.headers["x-api-key"] || "").trim() ||
-      (body.apiKey || body.api_key || body.API_KEY || "").trim() ||
+      (body.apiKey || body.api_key || "").trim() ||
       (process.env.DECART_API_KEY || "").trim();
 
-    if (apiKey) {
+    if (apiKey && apiKey.startsWith("dct_") && apiKey.length > 30) {
       const response = await fetch("https://api.decart.ai/v1/client/tokens", {
         method: "POST",
         headers: {
@@ -48,14 +49,15 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fallback — no valid key
+    // No valid key — return a stub so the widget shows a helpful message
     return res.status(200).json({
       apiKey: "no-key",
-      expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      expiresAt: Math.floor(Date.now() / 1000) + 60,
       modelName: "none",
       prompt: "",
       cloud_enabled: false,
       billing_enabled: false,
+      no_key: true,
       installation_id: body.installation_id || null,
       timeouts: {},
     });

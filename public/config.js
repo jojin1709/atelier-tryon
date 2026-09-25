@@ -11,25 +11,24 @@
     host.startsWith("172.")
   );
 
-  // Read API key from localStorage (set by user via the key modal)
+  // Read API key from localStorage (set by user via the key modal on demo page)
   var storedKey = "";
-  try { storedKey = localStorage.getItem("aurafit_decart_api_key") || ""; } catch(e) {}
+  try { storedKey = (localStorage.getItem("aurafit_decart_api_key") || "").trim(); } catch(e) {}
 
   var BASE = isLocal ? LOCAL : "";
 
+  // Embed the key as a query param so our /api/tokens proxy can forward it to Decart
+  var tokenBase = BASE + "/api/tokens";
+  if (storedKey && storedKey.startsWith("dct_") && storedKey.length > 30) {
+    tokenBase += "?k=" + encodeURIComponent(storedKey);
+  }
+
   window.DECART_CONFIG = {
     WIDGET_SIDE: "left",
-
-    // Point to our token proxy — which mints a real Decart client token
-    TOKEN_ENDPOINT_URL:  BASE + "/api/tokens",
+    TOKEN_ENDPOINT_URL:  tokenBase,
     QUEUE_ENDPOINT_BASE: BASE,
     IMAGE_PROXY_URL:     BASE + "/api/proxy-image",
-
-    // Pass the user's stored API key so the token endpoint uses it
-    API_KEY: storedKey,
-
     LOCAL_SERVER_URL: isLocal ? LOCAL : null,
-
     QUEUE_MAX_WAIT_MS: 5000,
     DEBUG: true,
     CONNECT_TIMEOUT_MS: 15000,
@@ -41,7 +40,6 @@
     RECORDING_ENABLED: false,
     SESSION_RECAP_ENABLED: false,
     ATC_PROMPT_ENABLED: false,
-
     MODERATION_RESET_ATTEMPT: {
       ENABLED: false,
       NSFW_THRESHOLD: 0.8,
@@ -69,7 +67,6 @@
       REARM_ACK_TIMEOUT_MS: 5000,
       DEBUG_PANEL: false
     },
-
     SHOW_TRYON_BUTTONS_WHEN_WIDGET_CLOSED: true,
   };
 })();

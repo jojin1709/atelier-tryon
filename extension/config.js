@@ -11,9 +11,17 @@
     host.startsWith("172.")
   );
 
-  // Read API key from localStorage (set by user via the key modal on demo page)
+  // Auto-clear old fake placeholder key if still stored
+  var FAKE_KEY_MARKER = "fdsfgsgfsdfgfs";
   var storedKey = "";
-  try { storedKey = (localStorage.getItem("aurafit_decart_api_key") || "").trim(); } catch(e) {}
+  try {
+    var raw = (localStorage.getItem("aurafit_decart_api_key") || "").trim();
+    if (raw.includes(FAKE_KEY_MARKER)) {
+      localStorage.removeItem("aurafit_decart_api_key");
+      raw = "";
+    }
+    storedKey = raw;
+  } catch(e) {}
 
   var BASE = isLocal ? LOCAL : "";
 

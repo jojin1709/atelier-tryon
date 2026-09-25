@@ -660,9 +660,15 @@
   <script>
     var currentGarment = '/shirt1.png';
 
-    // Load stored API key — never seed a fake placeholder
-    var activeApiKey = (localStorage.getItem('aurafit_decart_api_key') || '').trim();
-    var hasRealKey = activeApiKey.startsWith('dct_') && activeApiKey.length > 30;
+    // Auto-clear the old fake placeholder key if still stored
+    var FAKE_KEY_MARKER = 'fdsfgsgfsdfgfs';
+    var storedRaw = (localStorage.getItem('aurafit_decart_api_key') || '').trim();
+    if (storedRaw.includes(FAKE_KEY_MARKER)) {
+      localStorage.removeItem('aurafit_decart_api_key');
+      storedRaw = '';
+    }
+    var activeApiKey = storedRaw;
+    var hasRealKey = activeApiKey.startsWith('dct_') && activeApiKey.length > 30 && !activeApiKey.includes(FAKE_KEY_MARKER);
 
     function selectGarment(cardEl, url) {
       document.querySelectorAll('.garment-card').forEach(c => c.classList.remove('active'));

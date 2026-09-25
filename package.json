@@ -1,0 +1,7 @@
+{
+  "name": "atelier-tryon",
+  "version": "1.0.0",
+  "description": "Universal AI Virtual Try-On Studio powered by Decart Lucy VTON 3.5 & on-device AI",
+  "private": true,
+  "type": "module"
+}

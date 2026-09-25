@@ -1,10 +1,7 @@
-// config.js — dynamic endpoint resolution
-// Uses local server (127.0.0.1:7860) when running locally,
-// or falls back to relative Vercel serverless API routes when deployed.
+// config.js — dynamic endpoint resolution for Decart cloud SDK
 (function () {
   var LOCAL = "http://127.0.0.1:7860";
 
-  // Detect if we are served from localhost / local IP
   var host = window.location.hostname;
   var isLocal = (
     host === "localhost" ||
@@ -14,28 +11,35 @@
     host.startsWith("172.")
   );
 
-  var BASE = isLocal ? LOCAL : "";  // empty string → relative URLs on Vercel
+  // Read API key from localStorage (set by user via the key modal)
+  var storedKey = "";
+  try { storedKey = localStorage.getItem("aurafit_decart_api_key") || ""; } catch(e) {}
+
+  var BASE = isLocal ? LOCAL : "";
 
   window.DECART_CONFIG = {
     WIDGET_SIDE: "left",
 
-    // Token & queue endpoints — relative on Vercel, absolute locally
+    // Point to our token proxy — which mints a real Decart client token
     TOKEN_ENDPOINT_URL:  BASE + "/api/tokens",
     QUEUE_ENDPOINT_BASE: BASE,
     IMAGE_PROXY_URL:     BASE + "/api/proxy-image",
+
+    // Pass the user's stored API key so the token endpoint uses it
+    API_KEY: storedKey,
 
     LOCAL_SERVER_URL: isLocal ? LOCAL : null,
 
     QUEUE_MAX_WAIT_MS: 5000,
     DEBUG: true,
-    CONNECT_TIMEOUT_MS: 12000,
-    SESSION_INACTIVITY_SECONDS: 120,
+    CONNECT_TIMEOUT_MS: 15000,
+    SESSION_INACTIVITY_SECONDS: 180,
     SESSION_INACTIVITY_ACTION: "reset",
     SESSION_MAX_IMAGES: 50,
     SLOW_CONNECTION_THRESHOLD_MBPS: 1.5,
     SLOW_CONNECTION_TRIGGER_COUNT: 5,
-    RECORDING_ENABLED: true,
-    SESSION_RECAP_ENABLED: true,
+    RECORDING_ENABLED: false,
+    SESSION_RECAP_ENABLED: false,
     ATC_PROMPT_ENABLED: false,
 
     MODERATION_RESET_ATTEMPT: {

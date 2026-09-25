@@ -3,6 +3,8 @@
   "rewrites": [
     { "source": "/demo",                "destination": "/public/demo.html" },
     { "source": "/widget.html",         "destination": "/public/widget.html" },
+    { "source": "/health",              "destination": "/api/health" },
+    { "source": "/api/health",          "destination": "/api/health" },
     { "source": "/api/tokens",          "destination": "/api/tokens" },
     { "source": "/api/queue/join",      "destination": "/api/queue/join" },
     { "source": "/api/queue/status",    "destination": "/api/queue/status" },

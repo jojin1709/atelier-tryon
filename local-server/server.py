@@ -477,16 +477,27 @@ async def _load_garment(garment: str) -> Image.Image:
             r = await client.get(garment)
             r.raise_for_status()
             return Image.open(io.BytesIO(r.content)).convert("RGBA")
-    p = Path(garment)
-    if p.exists():
-        return Image.open(p).convert("RGBA")
-    ext_p = EXT_ROOT / Path(garment).name
-    if ext_p.exists():
-        return Image.open(ext_p).convert("RGBA")
+
+    # Resolve relative web paths like "/shirt1.png" or "shirt1.png"
+    # Search order: absolute path, public/, extension/, project root
+    filename = Path(garment.lstrip("/\\")).name
+    search_dirs = [
+        Path(garment) if not garment.startswith("/") else None,  # absolute path
+        EXT_ROOT / "public" / filename,                           # public/
+        EXT_ROOT / "public" / garment.lstrip("/\\"),             # public/ with sub-path
+        EXT_ROOT / "extension" / filename,                        # extension/
+        EXT_ROOT / filename,                                      # project root
+        ROOT / filename,                                          # server dir
+    ]
+    for candidate in search_dirs:
+        if candidate is not None and candidate.exists() and candidate.is_file():
+            return Image.open(candidate).convert("RGBA")
+
     if garment.endswith(".svg"):
-        png_p = EXT_ROOT / (Path(garment).stem + ".png")
-        if png_p.exists():
-            return Image.open(png_p).convert("RGBA")
+        for base in [EXT_ROOT / "public", EXT_ROOT / "extension", EXT_ROOT]:
+            png_p = base / (Path(garment).stem + ".png")
+            if png_p.exists():
+                return Image.open(png_p).convert("RGBA")
     raise HTTPException(400, f"cannot load garment: {garment[:80]}")
 
 # ---------------------------------------------------------------------------

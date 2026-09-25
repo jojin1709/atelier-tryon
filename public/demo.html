@@ -782,18 +782,29 @@
       document.getElementById('cloud-badge-text').textContent = 'DECART CLOUD: LUCY-VTON-3.5';
     }
 
-    // Health Polling
+    // Health Polling — try local server first, fall back to cloud /api/health
     function checkHealth() {
       fetch('/health')
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
         .then(data => {
-          document.getElementById('diag-server-status').textContent = 'Online (7860)';
+          document.getElementById('diag-server-status').textContent = 'Local ✓ (7860)';
           if (data.photo_res) {
             document.getElementById('diag-res').textContent = data.photo_res[0] + 'x' + data.photo_res[1];
           }
         })
         .catch(() => {
-          document.getElementById('diag-server-status').textContent = 'Cloud / Standalone';
+          // Local server not reachable — check cloud health
+          fetch('/api/health')
+            .then(r => r.json())
+            .then(data => {
+              document.getElementById('diag-server-status').textContent = 'Cloud Mode ✓';
+              if (data.photo_res) {
+                document.getElementById('diag-res').textContent = data.photo_res[0] + 'x' + data.photo_res[1];
+              }
+            })
+            .catch(() => {
+              document.getElementById('diag-server-status').textContent = 'Standalone';
+            });
         });
     }
 

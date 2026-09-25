@@ -1,9 +1,15 @@
 {
   "cleanUrls": true,
+  "public": "public",
   "rewrites": [
-    {
-      "source": "/demo",
-      "destination": "/demo.html"
-    }
+    { "source": "/demo",               "destination": "/public/demo.html" },
+    { "source": "/widget.html",        "destination": "/public/widget.html" },
+    { "source": "/api/tokens",         "destination": "/api/tokens" },
+    { "source": "/api/queue/join",     "destination": "/api/queue/join" },
+    { "source": "/api/queue/status",   "destination": "/api/queue/status" },
+    { "source": "/api/queue/heartbeat","destination": "/api/queue/heartbeat" },
+    { "source": "/api/queue/leave",    "destination": "/api/queue/leave" },
+    { "source": "/api/proxy-image",    "destination": "/api/proxy-image" },
+    { "source": "/api/log",            "destination": "/api/log" }
   ]
 }

@@ -1,1 +1,71 @@
-var DECART_CONFIG={WIDGET_SIDE:"left",TOKEN_ENDPOINT_URL:"http://127.0.0.1:7860/api/tokens",QUEUE_ENDPOINT_BASE:"http://127.0.0.1:7860",QUEUE_MAX_WAIT_MS:5e3,IMAGE_PROXY_URL:"http://127.0.0.1:7860/api/proxy-image",DEBUG:!0,CONNECT_TIMEOUT_MS:1e4,SESSION_INACTIVITY_SECONDS:120,SESSION_INACTIVITY_ACTION:"reset",SESSION_MAX_IMAGES:50,SLOW_CONNECTION_THRESHOLD_MBPS:1.5,SLOW_CONNECTION_TRIGGER_COUNT:5,RECORDING_ENABLED:!0,SESSION_RECAP_ENABLED:!0,ATC_PROMPT_ENABLED:!1,MODERATION_RESET_ATTEMPT:{ENABLED:!1,NSFW_THRESHOLD:.8,SERVER_SIDE_ENFORCEMENT:!1,MAX_RESETS_PER_SESSION:0,RESET_WITH_ENHANCEMENT:!1,REARM_DETECTOR:!1,FRESH_CACHE_MS:2e3,RESET_SETTLE_MS:4e3,RESET_APPLY_MS:400,REARM_GRACE_MS:600,OUTPUT_FLAGS_ONLY:!0,GIVE_UP_ACTION:"end_session",GIVE_UP_MESSAGE:"Something went wrong.",GIVE_UP_MESSAGE_UNSUPPORTED:"This item is not supported",GIVE_UP_RESTART_LABEL_UNSUPPORTED:"Restart",RESET_MESSAGE_ENABLED:!1,RESET_MESSAGE_TITLE:"We couldn't process that",RESET_MESSAGE_SUBTITLE:"Restarting the session",RESET_MESSAGE_BLUR:!0,RESET_MESSAGE_TARGET_MS:500,RESET_MESSAGE_FADE_MS:120,RESET_MESSAGE_MAX_MS:12e3,SET_IMAGE_ACK_TIMEOUT_MS:15e3,REARM_ACK_TIMEOUT_MS:5e3,DEBUG_PANEL:!1},SHOW_TRYON_BUTTONS_WHEN_WIDGET_CLOSED:!0,LOCAL_SERVER_URL:"http://127.0.0.1:7860"};
+// config.js — dynamic endpoint resolution
+// Uses local server (127.0.0.1:7860) when running locally,
+// or falls back to relative Vercel serverless API routes when deployed.
+(function () {
+  var LOCAL = "http://127.0.0.1:7860";
+
+  // Detect if we are served from localhost / local IP
+  var host = window.location.hostname;
+  var isLocal = (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.startsWith("192.168.") ||
+    host.startsWith("10.") ||
+    host.startsWith("172.")
+  );
+
+  var BASE = isLocal ? LOCAL : "";  // empty string → relative URLs on Vercel
+
+  window.DECART_CONFIG = {
+    WIDGET_SIDE: "left",
+
+    // Token & queue endpoints — relative on Vercel, absolute locally
+    TOKEN_ENDPOINT_URL:  BASE + "/api/tokens",
+    QUEUE_ENDPOINT_BASE: BASE,
+    IMAGE_PROXY_URL:     BASE + "/api/proxy-image",
+
+    LOCAL_SERVER_URL: isLocal ? LOCAL : null,
+
+    QUEUE_MAX_WAIT_MS: 5000,
+    DEBUG: true,
+    CONNECT_TIMEOUT_MS: 12000,
+    SESSION_INACTIVITY_SECONDS: 120,
+    SESSION_INACTIVITY_ACTION: "reset",
+    SESSION_MAX_IMAGES: 50,
+    SLOW_CONNECTION_THRESHOLD_MBPS: 1.5,
+    SLOW_CONNECTION_TRIGGER_COUNT: 5,
+    RECORDING_ENABLED: true,
+    SESSION_RECAP_ENABLED: true,
+    ATC_PROMPT_ENABLED: false,
+
+    MODERATION_RESET_ATTEMPT: {
+      ENABLED: false,
+      NSFW_THRESHOLD: 0.8,
+      SERVER_SIDE_ENFORCEMENT: false,
+      MAX_RESETS_PER_SESSION: 0,
+      RESET_WITH_ENHANCEMENT: false,
+      REARM_DETECTOR: false,
+      FRESH_CACHE_MS: 2000,
+      RESET_SETTLE_MS: 4000,
+      RESET_APPLY_MS: 400,
+      REARM_GRACE_MS: 600,
+      OUTPUT_FLAGS_ONLY: true,
+      GIVE_UP_ACTION: "end_session",
+      GIVE_UP_MESSAGE: "Something went wrong.",
+      GIVE_UP_MESSAGE_UNSUPPORTED: "This item is not supported",
+      GIVE_UP_RESTART_LABEL_UNSUPPORTED: "Restart",
+      RESET_MESSAGE_ENABLED: false,
+      RESET_MESSAGE_TITLE: "We couldn't process that",
+      RESET_MESSAGE_SUBTITLE: "Restarting the session",
+      RESET_MESSAGE_BLUR: true,
+      RESET_MESSAGE_TARGET_MS: 500,
+      RESET_MESSAGE_FADE_MS: 120,
+      RESET_MESSAGE_MAX_MS: 12000,
+      SET_IMAGE_ACK_TIMEOUT_MS: 15000,
+      REARM_ACK_TIMEOUT_MS: 5000,
+      DEBUG_PANEL: false
+    },
+
+    SHOW_TRYON_BUTTONS_WHEN_WIDGET_CLOSED: true,
+  };
+})();

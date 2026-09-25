@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           expiresIn: 3600,
-          allowedModels: ["lucy-vton-3.5", "lucy-vton-latest", "lucy-2.1"],
+          // No allowedModels restriction — let Decart assign based on account plan
         }),
       });
 

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atelier AI: Universal Virtual Try-On Studio</title>
+  <link rel="icon" type="image/png" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08090e;
+      --panel-bg: rgba(16, 18, 28, 0.75);
+      --card-bg: rgba(22, 26, 40, 0.65);
+      --card-hover: rgba(30, 36, 56, 0.88);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.38);
+      --accent-cyan: #06b6d4;
+      --accent-pink: #ec4899;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(99, 102, 241, 0.55);
+      --success: #10b981;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+                  var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(8, 9, 14, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      box-shadow: 0 4px 18px var(--accent-glow);
+      object-fit: cover;
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.18);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .key-badge-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--accent-cyan);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .key-badge-btn:hover {
+      background: rgba(6, 182, 212, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(0.9); }
+    }
+
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Main Container */
+    .app-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 28px;
+      padding: 24px 32px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 1100px) {
+      .app-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Storefront Column */
+    .storefront {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(6, 182, 212, 0.08));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .hero-banner p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 700px;
+    }
+
+    /* Diagnostics Box */
+    .diag-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .diag-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .diag-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .diag-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Garment Cards Grid */
+    .garment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .garment-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .garment-card:hover {
+      background: var(--card-hover);
+      border-color: var(--border-active);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    .garment-card.active {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.14);
+      box-shadow: 0 0 0 2px var(--accent), 0 12px 28px var(--accent-glow);
+    }
+
+    .garment-thumb-wrap {
+      width: 100%;
+      height: 200px;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.3) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .garment-thumb-wrap img {
+      max-width: 85%;
+      max-height: 85%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,0.45));
+      transition: transform 0.3s ease;
+    }
+
+    .garment-card:hover .garment-thumb-wrap img {
+      transform: scale(1.06);
+    }
+
+    .garment-meta {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .garment-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .garment-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .garment-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 12px;
+    }
+
+    .tryon-btn {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px var(--accent-glow);
+      transition: all 0.2s ease;
+    }
+
+    .tryon-btn:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-1px);
+    }
+
+    /* Custom Garment Dropzone */
+    .dropzone-card {
+      background: var(--card-bg);
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .dropzone-card:hover, .dropzone-card.dragover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .dropzone-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    /* Mirror Column */
+    .mirror-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mirror-frame-wrap {
+      background: #10121a;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      position: sticky;
+      top: 86px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mirror-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 8px 12px;
+    }
+
+    .mirror-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .widget-iframe-container {
+      width: 100%;
+      height: 640px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+
+    .widget-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Modal for Decart API Key */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: #11131f;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header>
+    <a href="#" class="brand">
+      <img src="/logo.png" class="brand-logo-img" alt="Atelier AI Logo">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="brand-title">ATELIER AI</span>
+          <span class="brand-tag">VIRTUAL STUDIO</span>
+        </div>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <!-- Decart Cloud API Key Badge / Modal Trigger -->
+      <button class="key-badge-btn" id="open-key-modal" onclick="openKeyModal()">
+        <span class="status-dot" id="cloud-dot"></span>
+        <span id="cloud-badge-text">DECART CLOUD: LUCY-VTON-3.5</span>
+      </button>
+
+      <button class="ctrl-btn" onclick="window.open('/widget.html', '_blank', 'width=460,height=720')">
+        Popout Mirror ↗
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <div class="app-layout">
+    <!-- Storefront Catalog -->
+    <div class="storefront">
+      <div class="hero-banner">
+        <h1>Private, On-Device & Cloud Virtual Dressing Room</h1>
+        <p>Atelier AI delivers photorealistic virtual try-on powered by Decart Lucy VTON 3.5 & on-device AI. Video stays completely private on your hardware. Works in browser, locally on your GPU, or as a Chrome Extension on any fashion store.</p>
+      </div>
+
+      <!-- Live Diagnostics -->
+      <div class="diag-box">
+        <div class="diag-stat">
+          <span class="diag-label">Decart Cloud Model</span>
+          <span class="diag-val" id="diag-cloud-model" style="color:var(--accent-cyan)">lucy-vton-3.5</span>
+        </div>
+        <div class="diag-stat">
+          <span class="diag-label">Platform API Key</span>
+          <span class="diag-val" id="diag-key-preview" style="color:#a5b4fc">Connected ✓</span>
+        </div>
+        <div class="diag-stat">
+          <span class="diag-label">Local Backend</span>
+          <span class="diag-val" id="diag-server-status">127.0.0.1:7860</span>
+        </div>
+        <div class="diag-stat">
+          <span class="diag-label">Resolution</span>
+          <span class="diag-val" id="diag-res">384x512</span>
+        </div>
+      </div>
+
+      <!-- Garment Selector -->
+      <div class="section-title">Showroom Collection</div>
+      <div class="garment-grid">
+        <!-- Item 1 -->
+        <div class="garment-card active" data-url="/shirt1.png" onclick="selectGarment(this, '/shirt1.png')">
+          <div class="garment-thumb-wrap">
+            <img src="/shirt1.png" alt="Noir Oxford Minimalist">
+          </div>
+          <div class="garment-meta">
+            <span class="garment-tag">Classic Edition</span>
+            <div class="garment-name">Noir Oxford Minimalist</div>
+            <div class="garment-price">$48.00</div>
+            <button class="tryon-btn" type="button">
+              <span>Try On Now</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="garment-card" data-url="/shirt2.png" onclick="selectGarment(this, '/shirt2.png')">
+          <div class="garment-thumb-wrap">
+            <img src="/shirt2.png" alt="Pure White Athletic Crewneck">
+          </div>
+          <div class="garment-meta">
+            <span class="garment-tag">Performance</span>
+            <div class="garment-name">Pure White Athletic Crewneck</div>
+            <div class="garment-price">$54.00</div>
+            <button class="tryon-btn" type="button">
+              <span>Try On Now</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="garment-card" data-url="/shirt3.png" onclick="selectGarment(this, '/shirt3.png')">
+          <div class="garment-thumb-wrap">
+            <img src="/shirt3.png" alt="Crimson Urban Oversize">
+          </div>
+          <div class="garment-meta">
+            <span class="garment-tag">Streetwear</span>
+            <div class="garment-name">Crimson Urban Oversize</div>
+            <div class="garment-price">$62.00</div>
+            <button class="tryon-btn" type="button">
+              <span>Try On Now</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Custom Garment -->
+      <div class="section-title">Upload Custom Garment</div>
+      <div class="dropzone-card" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp" style="display:none;" onchange="handleFileSelect(this)">
+        <div class="dropzone-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div style="font-size:14px; font-weight:600; margin-bottom:4px;">Drop any clothing image here or click to browse</div>
+        <div style="font-size:12px; color:var(--text-muted);">PNG, JPG, or WebP. Transparent backgrounds work best!</div>
+      </div>
+
+      <div style="font-size:12px; color:var(--text-muted); line-height:1.5; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border);">
+        <strong>💡 Deployment Note:</strong> This site can be deployed directly to <strong>Vercel</strong> or any web host. Anyone can visit the site and paste their Decart API Key from <a href="https://platform.decart.ai/api-keys" target="_blank" rel="noopener" style="color:var(--accent-cyan); text-decoration:none;">platform.decart.ai</a> to run try-on live in their browser!
+      </div>
+    </div>
+
+    <!-- Mirror Column -->
+    <div class="mirror-column">
+      <div class="mirror-frame-wrap">
+        <div class="mirror-header">
+          <div class="mirror-title">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);"></span>
+            Atelier Virtual Mirror
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="ctrl-btn" onclick="reloadWidget()">Reload ↺</button>
+          </div>
+        </div>
+
+        <div class="widget-iframe-container">
+          <iframe id="tryon-iframe" class="widget-iframe" src="/widget.html?garment=/shirt1.png&autostart=1" allow="camera; microphone; display-capture"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decart API Key Modal -->
+  <div class="modal-overlay" id="key-modal" onclick="if(event.target===this)closeKeyModal()">
+    <div class="modal-card">
+      <div class="modal-title-row">
+        <div style="font-size:17px; font-weight:700;">Decart Platform API Key</div>
+        <button class="modal-close-btn" onclick="closeKeyModal()">✕</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
+        Connect Decart's official <strong>Lucy VTON 3.5</strong> model to run high-definition virtual try-on in the cloud without needing a local GPU.
+      </p>
+      <input type="password" id="modal-api-key" class="modal-input" placeholder="dct_..." spellcheck="false">
+      <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b;">
+        <span>Get your API key at:</span>
+        <a href="https://platform.decart.ai/api-keys" target="_blank" rel="noopener" style="color:var(--accent-cyan); text-decoration:none;">platform.decart.ai/api-keys ↗</a>
+      </div>
+      <button class="tryon-btn" id="modal-save-btn" onclick="saveApiKey()">Save & Verify Key</button>
+      <div id="modal-status" style="font-size:12px; text-align:center; display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    var currentGarment = '/shirt1.png';
+
+    // Retrieve or default API key
+    var activeApiKey = localStorage.getItem('aurafit_decart_api_key') || 'dct_fdsfgsgfsdfgfs_eNOBoCaSPNddmNDFZMpBumzNIqccnKrwSfRDRhklHXBnNEXEbakUwaelDBugkSLI';
+    localStorage.setItem('aurafit_decart_api_key', activeApiKey);
+
+    function selectGarment(cardEl, url) {
+      document.querySelectorAll('.garment-card').forEach(c => c.classList.remove('active'));
+      if (cardEl) cardEl.classList.add('active');
+      currentGarment = url;
+
+      var iframe = document.getElementById('tryon-iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: 'DECART_AUTO_START',
+          productImageUrl: url,
+          imageSource: 'catalog_click'
+        }, '*');
+
+        try {
+          if (iframe.contentWindow.__anywearLocal && iframe.contentWindow.__anywearLocal.start) {
+            iframe.contentWindow.__anywearLocal.start(url);
+          }
+        } catch (e) {}
+      }
+    }
+
+    function reloadWidget() {
+      var iframe = document.getElementById('tryon-iframe');
+      if (iframe) {
+        iframe.src = '/widget.html?garment=' + encodeURIComponent(currentGarment) + '&autostart=1&t=' + Date.now();
+      }
+    }
+
+    function handleFileSelect(input) {
+      var file = input.files && input.files[0];
+      if (!file) return;
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        selectGarment(null, e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Drag-and-drop zone handling
+    var dz = document.getElementById('dropzone');
+    if (dz) {
+      ['dragenter', 'dragover'].forEach(name => {
+        dz.addEventListener(name, (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+      });
+      ['dragleave', 'drop'].forEach(name => {
+        dz.addEventListener(name, (e) => { e.preventDefault(); dz.classList.remove('dragover'); });
+      });
+      dz.addEventListener('drop', (e) => {
+        var dt = e.dataTransfer;
+        if (dt.files && dt.files.length) {
+          document.getElementById('file-input').files = dt.files;
+          handleFileSelect(document.getElementById('file-input'));
+        }
+      });
+    }
+
+    // API Key Modal
+    function openKeyModal() {
+      document.getElementById('key-modal').style.display = 'flex';
+      document.getElementById('modal-api-key').value = activeApiKey || '';
+    }
+
+    function closeKeyModal() {
+      document.getElementById('key-modal').style.display = 'none';
+    }
+
+    function saveApiKey() {
+      var key = (document.getElementById('modal-api-key').value || '').trim();
+      var btn = document.getElementById('modal-save-btn');
+      var status = document.getElementById('modal-status');
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying with Decart…';
+      status.style.display = 'block';
+      status.style.color = '#94a3b8';
+      status.textContent = 'Connecting to api.decart.ai…';
+
+      fetch('https://api.decart.ai/v1/client/tokens', {
+        method: 'POST',
+        headers: { 'x-api-key': key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiresIn: 300, allowedModels: ['lucy-vton-3.5'] })
+      })
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(data => {
+        activeApiKey = key;
+        localStorage.setItem('aurafit_decart_api_key', key);
+        status.style.color = '#10b981';
+        status.textContent = '✓ Verified! Decart Lucy VTON 3.5 Activated.';
+        btn.disabled = false;
+        btn.textContent = 'Saved!';
+        updateKeyDisplay();
+        setTimeout(closeKeyModal, 1200);
+
+        // Also update local server if running
+        fetch('/api/decart/key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key })
+        }).catch(() => {});
+      })
+      .catch(err => {
+        status.style.color = '#ef4444';
+        status.textContent = 'Verification error: please check the key and your connection.';
+        btn.disabled = false;
+        btn.textContent = 'Retry';
+      });
+    }
+
+    function updateKeyDisplay() {
+      var preview = activeApiKey ? (activeApiKey.slice(0, 7) + '...' + activeApiKey.slice(-4)) : 'None';
+      document.getElementById('diag-key-preview').textContent = preview + ' ✓';
+      document.getElementById('cloud-badge-text').textContent = 'DECART CLOUD: LUCY-VTON-3.5';
+    }
+
+    // Health Polling
+    function checkHealth() {
+      fetch('/health')
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('diag-server-status').textContent = 'Online (7860)';
+          if (data.photo_res) {
+            document.getElementById('diag-res').textContent = data.photo_res[0] + 'x' + data.photo_res[1];
+          }
+        })
+        .catch(() => {
+          document.getElementById('diag-server-status').textContent = 'Cloud / Standalone';
+        });
+    }
+
+    updateKeyDisplay();
+    setInterval(checkHealth, 5000);
+    checkHealth();
+  </script>
+
+  <footer style="text-align: center; padding: 24px 16px 36px; color: #71717a; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 48px;">
+    <div>Atelier AI &bull; Universal Virtual Dressing Room &bull; Powered by Decart Lucy VTON 3.5</div>
+    <div style="margin-top: 8px; font-weight: 500; color: #a1a1aa;">
+      Developed by <a href="https://github.com/jojin1709" target="_blank" rel="noopener" style="color: #818cf8; text-decoration: none; font-weight: 600;">JOJIN JOHN</a> &bull; <a href="https://github.com/sponsors/jojin1709" target="_blank" rel="noopener" style="color: #ec4899; text-decoration: none; font-weight: 600;">❤️ Sponsor on GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

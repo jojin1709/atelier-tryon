@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/api/tokens",
+      "dest": "/api/tokens.js"
+    },
+    {
+      "src": "/api/proxy-image",
+      "dest": "/api/proxy-image.js"
+    },
+    {
+      "src": "/demo",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

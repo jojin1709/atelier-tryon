@@ -1,0 +1,39 @@
+# Environments
+.venv/
+env/
+venv/
+ENV/
+local-server/CatVTON/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables & secrets
+local-server/.env
+.env
+.env.local
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Large model checkpoints (if downloaded locally)
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+
+# Build artifacts
+dist/
+build/
+.vercel/
+branding_options/
+

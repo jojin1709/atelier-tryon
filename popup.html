@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Atelier AI Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 290px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d0f17;
+      color: #f3f4f6;
+      -webkit-font-smoothing: antialiased;
+      padding: 16px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .brand-tag {
+      font-size: 10px;
+      font-weight: 600;
+      color: #06b6d4;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      margin-top: 10px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 9px 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 11px;
+      font-family: monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: #6366f1;
+    }
+
+    .key-hint {
+      font-size: 10px;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .key-hint a {
+      color: #06b6d4;
+      text-decoration: none;
+    }
+
+    .key-hint a:hover {
+      text-decoration: underline;
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 8px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: opacity 0.2s;
+    }
+
+    .save-btn:hover {
+      opacity: 0.9;
+    }
+
+    .status-msg {
+      font-size: 10px;
+      color: #10b981;
+      margin-top: -8px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .popup-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.15s;
+      margin-bottom: 8px;
+    }
+
+    .popup-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-row">
+    <img src="logo.png" class="brand-logo" alt="Atelier AI">
+    <div>
+      <div class="brand-title">Atelier AI</div>
+      <div class="brand-tag">Virtual Try-On Studio</div>
+    </div>
+  </div>
+
+  <div class="section-title">Decart Platform API Key</div>
+  <div class="input-group">
+    <input type="password" id="api-key-input" class="input-field" placeholder="dct_..." spellcheck="false">
+    <div class="key-hint">
+      <span>Get from Decart AI</span>
+      <a href="https://platform.decart.ai/api-keys" target="_blank" rel="noopener">platform.decart.ai ↗</a>
+    </div>
+  </div>
+  <button id="save-key-btn" class="save-btn">Save & Verify Key</button>
+  <div id="status-msg" class="status-msg">✓ Decart API Key Connected</div>
+
+  <button class="popup-btn" id="open-widget">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    Open Try-On Mirror
+  </button>
+
+  <div style="margin-top: 14px; text-align: center; font-size: 11px; color: #71717a;">
+    Developed by <a href="https://github.com/jojin1709" target="_blank" rel="noopener" style="color: #818cf8; text-decoration: none; font-weight: 500;">JOJIN JOHN</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

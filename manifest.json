@@ -1,0 +1,44 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "icons/icon128.png",
+         "16": "icons/icon16.png",
+         "32": "icons/icon32.png",
+         "48": "icons/icon48.png"
+      },
+      "default_popup": "popup.html",
+      "default_title": "Atelier: AI Virtual Try-On"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "js": [ "crash_reports.js", "button-detector.js", "config.js", "revolve.js", "ugg.js", "guess.js", "per_website_garment_filter.js", "widget-core.js", "content.js" ],
+      "matches": [ "<all_urls>" ],
+      "run_at": "document_idle"
+   } ],
+   "declarative_net_request": {
+      "rule_resources": [ {
+         "enabled": true,
+         "id": "ruleset_1",
+         "path": "rules.json"
+      } ]
+   },
+   "description": "Atelier AI Virtual Try-On Studio. Powered by Decart Lucy VTON 3.5 & on-device AI.",
+   "host_permissions": [ "<all_urls>", "http://127.0.0.1:7860/*", "https://api.decart.ai/*" ],
+   "icons": {
+      "128": "icons/icon128.png",
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+   },
+   "manifest_version": 3,
+   "name": "Atelier: AI Virtual Try-On Studio",
+   "permissions": [ "activeTab", "storage", "tabs", "declarativeNetRequest" ],
+   "version": "3.0.0",
+   "web_accessible_resources": [ {
+      "matches": [ "<all_urls>" ],
+      "resources": [ "widget.html", "widget-prefetch.js", "local-engine.js", "icons/icon16.png", "icons/icon32.png", "icons/icon48.png", "icons/icon128.png", "widget-init.js", "stream-quality.js", "connection-indicator.js", "logger.js", "moderation-overlay.js", "moderation-reset-attempt.js", "recording.js", "billing.js", "config.js", "tryon-preview.gif", "default_video.mp4", "shirt1.svg", "shirt2.svg", "shirt3.svg", "shirt1.png", "shirt2.png", "shirt3.png", "logo.png" ]
+   } ]
+}
+

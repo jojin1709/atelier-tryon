@@ -15,6 +15,14 @@
       "dest": "/index.html"
     },
     {
+      "src": "/widget.html",
+      "dest": "/extension/widget.html"
+    },
+    {
+      "src": "/(widget-.*\\.js|local-engine\\.js|billing\\.js|config\\.js|connection-indicator\\.js|logger\\.js|recording\\.js|stream-quality\\.js)",
+      "dest": "/extension/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }

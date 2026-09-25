@@ -90,6 +90,36 @@
 
 ---
 
+## Repository Structure
+
+```text
+atelier-tryon/
+├── api/                  # Vercel serverless API functions (/api/tokens, /api/proxy-image)
+├── docs/                 # Engineering specs, filters, and architecture notes
+├── extension/            # Chrome MV3 Extension (load this directory unpacked in Chrome)
+│   ├── manifest.json     # MV3 extension manifest
+│   ├── background.js     # Background service worker
+│   ├── content.js        # E-commerce store detector & widget injector
+│   ├── popup.html        # Decart API key settings & mirror launcher
+│   ├── widget.html       # Virtual dressing room interface
+│   ├── local-engine.js   # Real-time mirror & canvas rendering engine
+│   └── icons/            # App icons (16, 32, 48, 128, 256, 512)
+├── local-server/         # Local Python server (FastAPI, PyTorch GPU fallback, PIL composite)
+│   ├── server.py         # Main daemon & WebSocket keyframe engine
+│   ├── requirements.txt  # Python dependencies
+│   └── start.bat         # 1-click Windows startup script
+├── public/               # Static assets & garments served on Web and Local
+│   ├── garments/         # Sample garment collection (PNG/SVG)
+│   ├── logo.png          # Atelier luxury brand mark
+│   └── favicon.ico       # Web & extension favicon
+├── demo.html             # Full-screen virtual dressing studio
+├── index.html            # Main web app landing page & showroom
+├── vercel.json           # Vercel deployment routes & proxy rules
+└── README.md             # Documentation, quickstart & architecture
+```
+
+---
+
 ## Quickstart (Local Backend)
 
 ### Prerequisites
@@ -155,7 +185,7 @@ Try on garments while shopping online (Amazon, Zara, Revolve, Shein, etc.):
 1. Open Google Chrome and navigate to `chrome://extensions/`.
 2. Toggle on **Developer mode** in the top right.
 3. Click **Load unpacked**.
-4. Select the `atelier-tryon` project folder.
+4. Select the **`extension/`** folder inside the `atelier-tryon` repository.
 5. Click the Atelier extension icon in your Chrome toolbar to enter your Decart API Key and launch your dressing room.
 
 ---

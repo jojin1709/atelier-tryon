@@ -641,14 +641,18 @@ async def get_demo():
 @app.get("/{file_path:path}")
 async def serve_ext_file(file_path: str):
     if not file_path:
-        return {"service": "anywear-local", "demo": "/demo"}
-    p = (EXT_ROOT / file_path).resolve()
-    try:
-        p.relative_to(EXT_ROOT)
-    except ValueError:
-        raise HTTPException(403, "Forbidden")
-    if p.is_file():
-        ct = mimetypes.guess_type(str(p))[0] or "application/octet-stream"
-        return FileResponse(p, media_type=ct)
+        return {"service": "atelier-local", "demo": "/demo"}
+    
+    # Check across public/, extension/, and project root
+    for base in [EXT_ROOT / "public", EXT_ROOT / "extension", EXT_ROOT]:
+        candidate = (base / file_path).resolve()
+        try:
+            candidate.relative_to(base)
+            if candidate.is_file():
+                ct = mimetypes.guess_type(str(candidate))[0] or "application/octet-stream"
+                return FileResponse(candidate, media_type=ct)
+        except ValueError:
+            continue
+            
     raise HTTPException(404, "Not Found")
 

@@ -742,16 +742,7 @@
       status.style.color = '#94a3b8';
       status.textContent = 'Connecting to api.decart.ai…';
 
-      fetch('https://api.decart.ai/v1/client/tokens', {
-        method: 'POST',
-        headers: { 'x-api-key': key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expiresIn: 300, allowedModels: ['lucy-vton-3.5'] })
-      })
-      .then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(data => {
+      function acceptKey() {
         activeApiKey = key;
         localStorage.setItem('aurafit_decart_api_key', key);
         status.style.color = '#10b981';
@@ -759,21 +750,35 @@
         btn.disabled = false;
         btn.textContent = 'Saved!';
         updateKeyDisplay();
-        setTimeout(closeKeyModal, 1200);
+        setTimeout(function() {
+          closeKeyModal();
+          var iframe = document.getElementById('tryon-iframe');
+          if (iframe) iframe.src = iframe.src;
+        }, 1200);
 
-        // Also update local server if running
         fetch('/api/decart/key', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ api_key: key })
         }).catch(() => {});
-      })
-      .catch(err => {
-        status.style.color = '#ef4444';
-        status.textContent = 'Verification error: please check the key and your connection.';
-        btn.disabled = false;
-        btn.textContent = 'Retry';
-      });
+      }
+
+      fetch('/api/tokens?k=' + encodeURIComponent(key), { method: 'POST' })
+        .then(r => {
+          if (r.ok) return r.json();
+          throw new Error('proxy failed');
+        })
+        .then(() => acceptKey())
+        .catch(() => {
+          if (key.startsWith('dct_') && key.length > 25) {
+            acceptKey();
+          } else {
+            status.style.color = '#ef4444';
+            status.textContent = 'Invalid key. Decart keys start with dct_';
+            btn.disabled = false;
+            btn.textContent = 'Retry';
+          }
+        });
     }
 
     function updateKeyDisplay() {

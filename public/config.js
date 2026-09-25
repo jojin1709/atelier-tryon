@@ -11,16 +11,9 @@
     host.startsWith("172.")
   );
 
-  // Auto-clear old fake placeholder key if still stored
-  var FAKE_KEY_MARKER = "fdsfgsgfsdfgfs";
   var storedKey = "";
   try {
-    var raw = (localStorage.getItem("aurafit_decart_api_key") || "").trim();
-    if (raw.includes(FAKE_KEY_MARKER)) {
-      localStorage.removeItem("aurafit_decart_api_key");
-      raw = "";
-    }
-    storedKey = raw;
+    storedKey = (localStorage.getItem("aurafit_decart_api_key") || "").trim();
   } catch(e) {}
 
   var BASE = isLocal ? LOCAL : "";

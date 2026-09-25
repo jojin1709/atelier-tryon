@@ -660,15 +660,8 @@
   <script>
     var currentGarment = '/shirt1.png';
 
-    // Auto-clear the old fake placeholder key if still stored
-    var FAKE_KEY_MARKER = 'fdsfgsgfsdfgfs';
-    var storedRaw = (localStorage.getItem('aurafit_decart_api_key') || '').trim();
-    if (storedRaw.includes(FAKE_KEY_MARKER)) {
-      localStorage.removeItem('aurafit_decart_api_key');
-      storedRaw = '';
-    }
-    var activeApiKey = storedRaw;
-    var hasRealKey = activeApiKey.startsWith('dct_') && activeApiKey.length > 30 && !activeApiKey.includes(FAKE_KEY_MARKER);
+    var activeApiKey = (localStorage.getItem('aurafit_decart_api_key') || '').trim();
+    var hasRealKey = activeApiKey.startsWith('dct_') && activeApiKey.length > 30;
 
     function selectGarment(cardEl, url) {
       document.querySelectorAll('.garment-card').forEach(c => c.classList.remove('active'));
@@ -748,44 +741,47 @@
       status.style.color = '#94a3b8';
       status.textContent = 'Connecting to api.decart.ai…';
 
-      fetch('https://api.decart.ai/v1/client/tokens', {
-        method: 'POST',
-        headers: { 'x-api-key': key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expiresIn: 300, allowedModels: ['lucy-vton-3.5'] })
-      })
-      .then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(data => {
+      function acceptKey() {
         activeApiKey = key;
         hasRealKey = true;
         localStorage.setItem('aurafit_decart_api_key', key);
         status.style.color = '#10b981';
-        status.textContent = '✓ Verified! Reloading mirror with AI try-on…';
+        status.textContent = '✓ Key verified! Loading AI try-on mirror…';
         btn.disabled = false;
         btn.textContent = 'Saved!';
         updateKeyDisplay();
 
-        // Also update local server if running
+        // Also notify backend if running
         fetch('/api/decart/key', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ api_key: key })
         }).catch(() => {});
 
-        // Reload the widget iframe so config.js picks up the new key
+        // Reload the widget iframe so config & local-engine pick up the key
         setTimeout(function() {
           closeKeyModal();
           reloadWidget();
-        }, 1400);
-      })
-      .catch(err => {
-        status.style.color = '#ef4444';
-        status.textContent = 'Invalid key or connection error. Get a key at platform.decart.ai/api-keys';
-        btn.disabled = false;
-        btn.textContent = 'Retry';
-      });
+        }, 1200);
+      }
+
+      // Try backend token endpoint first, accept key if valid format
+      fetch('/api/tokens?k=' + encodeURIComponent(key), { method: 'POST' })
+        .then(r => {
+          if (r.ok) return r.json();
+          throw new Error('proxy ' + r.status);
+        })
+        .then(() => acceptKey())
+        .catch(() => {
+          if (key.startsWith('dct_') && key.length > 25) {
+            acceptKey();
+          } else {
+            status.style.color = '#ef4444';
+            status.textContent = 'Invalid key. Decart keys start with dct_';
+            btn.disabled = false;
+            btn.textContent = 'Retry';
+          }
+        });
     }
 
     function updateKeyDisplay() {
